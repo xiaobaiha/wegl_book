@@ -1,22 +1,22 @@
-const vertextShaderSource = `
-attribute vec2 a_position;
-uniform vec2 u_resolution;
+// const vertextShaderSource = `
+// attribute vec2 a_position;
+// uniform vec2 u_resolution;
 
-void main() {
-  vec2 zeroToOne = a_position / u_resolution;
-  vec2 zeroToTwo = zeroToOne * 2.0;
-  vec2 clipSpace = zeroToTwo - 1.0;
-  gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-}
-`;
+// void main() {
+//   vec2 zeroToOne = a_position / u_resolution;
+//   vec2 zeroToTwo = zeroToOne * 2.0;
+//   vec2 clipSpace = zeroToTwo - 1.0;
+//   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+// }
+// `;
 
-const fragmentShaderSource = `
-precision mediump float;
-uniform vec4 u_color;
-void main() {
-  gl_FragColor = u_color;
-}
-`;
+// const fragmentShaderSource = `
+// precision mediump float;
+// uniform vec4 u_color;
+// void main() {
+//   gl_FragColor = u_color;
+// }
+// `;
 
 function createShader(gl, type, source) {
   const shader = gl.createShader(type);
@@ -43,12 +43,12 @@ function createProgram(gl, vShader, fShader) {
 }
 
 function randomInt(a) {
-  return Math.floor(Math.random * a);
+  return Math.floor(Math.random() * a);
 }
 
 function setRect(gl, x, y) {
-  const x2 = x + 10;
-  const y2 = y + 5;
+  const x2 = x + 20;
+  const y2 = y + 10;
   gl.bufferData(
     gl.ARRAY_BUFFER,
     new Float32Array([x, y, x, y2, x2, y, x2, y, x, y2, x2, y2]),
@@ -56,9 +56,17 @@ function setRect(gl, x, y) {
   );
 }
 
-function main() {
+function loadSource(file) {
+  return fetch(file).then((res) => res.text());
+}
+
+async function main() {
   const canvas = document.querySelector("#root");
   const gl = canvas.getContext("webgl");
+  const [vertextShaderSource, fragmentShaderSource] = await Promise.all([
+    loadSource("index.vs"),
+    loadSource("index.frag"),
+  ]);
   const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertextShaderSource);
   const fragmentShader = createShader(
     gl,
@@ -97,18 +105,18 @@ function main() {
     stride,
     offset
   );
-  // for (let i = 0; i < 50; i++) {
-  //   setRect(gl, randomInt(300), randomInt(300));
-  //   gl.uniform4f(
-  //     colorUniformLocation,
-  //     Math.random(),
-  //     Math.random(),
-  //     Math.random(),
-  //     1
-  //   );
-  //   gl.drawArrays(gl.TRIANGLES, 0, 6);
-  // }
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  for (let i = 0; i < 50; i++) {
+    setRect(gl, randomInt(300), randomInt(300));
+    gl.uniform4f(
+      colorUniformLocation,
+      Math.random(),
+      Math.random(),
+      Math.random(),
+      1
+    );
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+  // gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
 main();
