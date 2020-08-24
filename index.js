@@ -116,7 +116,6 @@ async function main() {
     );
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
-  // gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
 main();
