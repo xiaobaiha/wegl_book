@@ -1004,6 +1004,7 @@ if (!window.clearImmediate) {
 
       // get info needed to put the text onto the canvas
       var info = getTextInfo(word, weight, rotateDeg);
+      console.log('info: ', info);
 
       // not getting the info means we shouldn't be drawing this one.
       if (!info) {
@@ -1123,10 +1124,6 @@ if (!window.clearImmediate) {
       if (canvas.getContext) {
         ngx = Math.ceil(canvas.width / g);
         ngy = Math.ceil(canvas.height / g);
-      } else {
-        var rect = canvas.getBoundingClientRect();
-        ngx = Math.ceil(rect.width / g);
-        ngy = Math.ceil(rect.height / g);
       }
 
       // Sending a wordcloudstart event which cause the previous loop to stop.
@@ -1171,52 +1168,6 @@ if (!window.clearImmediate) {
             grid[gx][gy] = true;
           }
         }
-      } else {
-        /* Determine bgPixel by creating
-           another canvas and fill the specified background color. */
-        var bctx = document.createElement("canvas").getContext("2d");
-
-        bctx.fillStyle = settings.backgroundColor;
-        bctx.fillRect(0, 0, 1, 1);
-        var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
-
-        /* Read back the pixels of the canvas we got to tell which part of the
-           canvas is empty.
-           (no clearCanvas only works with a canvas, not divs) */
-        var imageData = canvas
-          .getContext("2d")
-          .getImageData(0, 0, ngx * g, ngy * g).data;
-
-        gx = ngx;
-        var x, y;
-        while (gx--) {
-          grid[gx] = [];
-          gy = ngy;
-          while (gy--) {
-            y = g;
-            singleGridLoop: while (y--) {
-              x = g;
-              while (x--) {
-                i = 4;
-                while (i--) {
-                  if (
-                    imageData[
-                      ((gy * g + y) * ngx * g + (gx * g + x)) * 4 + i
-                    ] !== bgPixel[i]
-                  ) {
-                    grid[gx][gy] = false;
-                    break singleGridLoop;
-                  }
-                }
-              }
-            }
-            if (grid[gx][gy] !== false) {
-              grid[gx][gy] = true;
-            }
-          }
-        }
-
-        imageData = bctx = bgPixel = undefined;
       }
 
       // fill the infoGrid with empty state if we need it
