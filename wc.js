@@ -473,7 +473,6 @@ if (!window.clearImmediate) {
     /* Get points on the grid for a given radius away from the center */
     var pointsAtRadius = [];
     var getPointsAtRadius = function getPointsAtRadius(radius) {
-      console.log("pointsAtRadius: ", pointsAtRadius);
       if (pointsAtRadius[radius]) {
         return pointsAtRadius[radius];
       }
@@ -1004,7 +1003,6 @@ if (!window.clearImmediate) {
 
       // get info needed to put the text onto the canvas
       var info = getTextInfo(word, weight, rotateDeg);
-      console.log('info: ', info);
 
       // not getting the info means we shouldn't be drawing this one.
       if (!info) {

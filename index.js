@@ -70,11 +70,13 @@ const handleClick = (e, program, gl) => {
 
 const drawPoint = (program, gl, x, y) => {
   const a_position = gl.getAttribLocation(program, "a_position");
+  const u_color = gl.getUniformLocation(program, "u_color");
   if (a_position < 0) {
     console.log("invalid storage");
     return;
   }
   gl.vertexAttrib3f(a_position, x, y, 0.0);
+  gl.uniform4f(u_color, x, y, 0.0, 1.0);
   gl.drawArrays(gl.POINTS, 0, 1);
 };
 
