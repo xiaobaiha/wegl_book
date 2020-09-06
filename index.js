@@ -6,7 +6,6 @@ function createShader(gl, type, source) {
   if (success) {
     return shader;
   }
-  console.log(gl.getShaderInfoLog(shader));
   gl.deleteShader(shader);
 }
 function createProgram(gl, vShader, fShader) {
@@ -18,7 +17,6 @@ function createProgram(gl, vShader, fShader) {
   if (success) {
     return program;
   }
-  console.log(gl.getProgramInfoLog(program));
   gl.deleteProgram(program);
 }
 
@@ -80,6 +78,48 @@ const drawPoint = (program, gl, x, y) => {
   gl.drawArrays(gl.POINTS, 0, 1);
 };
 
+let last = Date.now();
+
+const drawTriangle = (gl, program) => {
+  const verteices = new Float32Array([0.0, 0.5, -0.5, -0.5, 0.5, -0.5]);
+  const vertexBuffer = gl.createBuffer();
+  if (!vertexBuffer) {
+    console.log("Failed to create buffer");
+    return -1;
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, verteices, gl.STATIC_DRAW);
+  const a_position = gl.getAttribLocation(program, "a_position");
+  const u_ModelMatrix = gl.getUniformLocation(program, "u_ModelMatrix");
+  if (a_position < 0) {
+    console.log("invalid storage");
+    return;
+  }
+  const rotate = ((Date.now() - last) / 1000) % 360;
+  gl.uniformMatrix4fv(u_ModelMatrix, false, [
+    Math.cos(rotate),
+    Math.sin(rotate),
+    0,
+    0,
+    -Math.sin(rotate),
+    Math.cos(rotate),
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+  ]);
+  gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(a_position);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  window.requestAnimationFrame(() => drawTriangle(gl, program));
+};
+
 async function main() {
   const canvas = document.querySelector("#root");
   const gl = canvas.getContext("webgl");
@@ -87,52 +127,7 @@ async function main() {
   gl.useProgram(program);
   gl.clearColor(1.0, 0.0, 0.0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT);
-  canvas.onclick = (e) => {
-    handleClick(e, program, gl);
-  };
-  // drawPoint(program, gl);
-  // const positionAttributrLocation = gl.getAttribLocation(program, "a_position");
-  // const resolutionUniformLocation = gl.getUniformLocation(
-  //   program,
-  //   "u_resolution"
-  // );
-  // const colorUniformLocation = gl.getUniformLocation(program, "u_color");
-  // const positionBuffer = gl.createBuffer();
-  // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  // const positions = [10, 20, 80, 20, 10, 30, 10, 30, 80, 20, 80, 30];
-  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-  // // webglUtils.resizeCanvasToDisplaySize(gl.canvas);
-  // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-  // gl.clearColor(0, 0, 0, 0);
-  // gl.clear(gl.COLOR_BUFFER_BIT);
-  // gl.useProgram(program);
-  // gl.enableVertexAttribArray(positionAttributrLocation);
-  // gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
-  // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  // const size = 2;
-  // const type = gl.FLOAT;
-  // const normalize = false;
-  // const stride = 0;
-  // const offset = 0;
-  // gl.vertexAttribPointer(
-  //   positionAttributrLocation,
-  //   size,
-  //   type,
-  //   normalize,
-  //   stride,
-  //   offset
-  // );
-  // for (let i = 0; i < 50; i++) {
-  //   setRect(gl, randomInt(300), randomInt(300));
-  //   gl.uniform4f(
-  //     colorUniformLocation,
-  //     Math.random(),
-  //     Math.random(),
-  //     Math.random(),
-  //     1
-  //   );
-  //   gl.drawArrays(gl.TRIANGLES, 0, 6);
-  // }
+  drawTriangle(gl, program);
 }
 
 main();

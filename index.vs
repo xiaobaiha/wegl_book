@@ -1,6 +1,6 @@
 attribute vec4 a_position;
+uniform mat4 u_ModelMatrix;
 
 void main(){
-  gl_Position=a_position;
-  gl_PointSize=10.;
+  gl_Position=u_ModelMatrix*a_position;
 }
