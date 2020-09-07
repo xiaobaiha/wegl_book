@@ -8,6 +8,13 @@ function createShader(gl, type, source) {
   }
   gl.deleteShader(shader);
 }
+
+/**
+ *
+ * @param {WebGLRenderingContext} gl
+ * @param {string} vShader
+ * @param {string} fShader
+ */
 function createProgram(gl, vShader, fShader) {
   const program = gl.createProgram();
   gl.attachShader(program, vShader);
@@ -38,6 +45,10 @@ function loadSource(file) {
   return fetch(file).then((res) => res.text());
 }
 
+/**
+ *
+ * @param {WebGLRenderingContext} gl
+ */
 async function initShader(gl) {
   const [vertextShaderSource, fragmentShaderSource] = await Promise.all([
     loadSource("index.vs"),
@@ -120,14 +131,104 @@ const drawTriangle = (gl, program) => {
   window.requestAnimationFrame(() => drawTriangle(gl, program));
 };
 
+function isPowerOf2(value) {
+  return (value & (value - 1)) === 0;
+}
+
+/**
+ *
+ * @param {WebGLRenderingContext} gl
+ * @param {WebGLTexture} texture
+ * @param {WebGLUniformLocation} u_Sampler
+ * @param {HTMLImageElement} image
+ */
+const loadTexture = (gl, texture, u_Sampler, image) => {
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+    // 是 2 的幂，一般用贴图
+    gl.generateMipmap(gl.TEXTURE_2D);
+  } else {
+    // 不是 2 的幂，关闭贴图并设置包裹模式（不需要重复）为到边缘
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  }
+  // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+  gl.uniform1i(u_Sampler, 0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+};
+
+/**
+ *
+ * @param {WebGLRenderingContext} gl
+ * @param {WebGLProgram} program
+ */
+const initTexture = (gl, program) => {
+  const texture = gl.createTexture();
+  const u_Sampler = gl.getUniformLocation(program, "u_Sampler");
+  const image = new Image();
+  image.crossOrigin = "Anonymous";
+  image.src = "https://webglfundamentals.org/webgl/resources/leaves.jpg";
+  image.onload = () => {
+    loadTexture(gl, texture, u_Sampler, image);
+  };
+};
+
+/**
+ *
+ * @param {WebGLRenderingContext} gl
+ * @param {WebGLProgram} program
+ */
+const drawTexture = (gl, program) => {
+  const verteices = new Float32Array([
+    -0.5,
+    0.5,
+    0.0,
+    1.0,
+    -0.5,
+    -0.5,
+    0.0,
+    1.0,
+    0.5,
+    0.5,
+    1.0,
+    1.0,
+    0.5,
+    -0.5,
+    1.0,
+    0.0,
+  ]);
+  const vertexTexCoordBuffer = gl.createBuffer();
+  if (!vertexTexCoordBuffer) {
+    console.log("Failed to create buffer");
+    return -1;
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexCoordBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, verteices, gl.STATIC_DRAW);
+  const a_position = gl.getAttribLocation(program, "a_position");
+  const a_TexCoord = gl.getAttribLocation(program, "a_TexCoord");
+  const FSIZE = verteices.BYTES_PER_ELEMENT;
+  gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, FSIZE * 4, 0);
+  gl.enableVertexAttribArray(a_position);
+  gl.vertexAttribPointer(a_TexCoord, 2, gl.FLOAT, false, FSIZE * 4, FSIZE * 2);
+  gl.enableVertexAttribArray(a_TexCoord);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  initTexture(gl, program);
+};
+
 async function main() {
+  /** @type {HTMLCanvasElement} */
   const canvas = document.querySelector("#root");
   const gl = canvas.getContext("webgl");
   const program = await initShader(gl);
   gl.useProgram(program);
-  gl.clearColor(1.0, 0.0, 0.0, 0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-  drawTriangle(gl, program);
+  // gl.clearColor(1.0, 0.0, 0.0, 0);
+  // gl.clear(gl.COLOR_BUFFER_BIT);
+  drawTexture(gl, program);
 }
 
 main();

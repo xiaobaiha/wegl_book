@@ -1,6 +1,7 @@
 attribute vec4 a_position;
-uniform mat4 u_ModelMatrix;
-
+attribute vec2 a_TexCoord;
+varying vec2 v_TexCoord;
 void main(){
-  gl_Position=u_ModelMatrix*a_position;
+  gl_Position=a_position;
+  v_TexCoord=a_TexCoord;
 }
