@@ -172,7 +172,7 @@ const initTexture = (gl, program) => {
   const u_Sampler = gl.getUniformLocation(program, "u_Sampler");
   const image = new Image();
   image.crossOrigin = "Anonymous";
-  image.src = "https://webglfundamentals.org/webgl/resources/leaves.jpg";
+  image.src = "assets/webpack.png";
   image.onload = () => {
     loadTexture(gl, texture, u_Sampler, image);
   };
@@ -192,7 +192,7 @@ const drawTexture = (gl, program) => {
     -0.5,
     -0.5,
     0.0,
-    1.0,
+    0.0,
     0.5,
     0.5,
     1.0,
@@ -226,8 +226,6 @@ async function main() {
   const gl = canvas.getContext("webgl");
   const program = await initShader(gl);
   gl.useProgram(program);
-  // gl.clearColor(1.0, 0.0, 0.0, 0);
-  // gl.clear(gl.COLOR_BUFFER_BIT);
   drawTexture(gl, program);
 }
 
