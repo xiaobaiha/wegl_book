@@ -54,19 +54,19 @@ const drawViewTriangle = (gl, program) => {
     // right
     0.0, //blue
     1.0,
-    0.0,
+    -2.0,
     0.4,
     0.4,
     1.0,
     -0.5,
     -1.0,
-    0.0,
+    -2.0,
     0.4,
     0.4,
     1.0,
     0.5,
     -1.0,
-    0.0,
+    -2.0,
     1.0,
     0.4,
     0.4,
@@ -155,8 +155,9 @@ async function main() {
   const canvas = document.querySelector("#root");
   canvasRatio = canvas.width / canvas.height;
   const gl = canvas.getContext("webgl");
-  gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.DEPTH_TEST | gl.POLYGON_OFFSET_FILL);
   gl.clear(gl.DEPTH_BUFFER_BIT);
+  gl.polygonOffset(1.0, 1.0);
   const program = await initShader(gl);
   gl.useProgram(program);
   drawViewTriangle(gl, program);
