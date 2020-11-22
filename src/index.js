@@ -42,6 +42,8 @@ async function initShader(gl) {
   return program;
 }
 
+let eyeX = 0.2;
+
 /**
  * @param {WebGLRenderingContext} gl
  * @param {WebGLProgram} program
@@ -121,7 +123,7 @@ const drawViewTriangle = (gl, program) => {
   const viewMatrix = mat4.create();
   mat4.lookAt(
     viewMatrix,
-    vec3.fromValues(0.2, 0.25, 0.25),
+    vec3.fromValues(eyeX, 0.25, 0.25),
     vec3.fromValues(0, 0, 0),
     vec3.fromValues(0, 1, 0)
   );
@@ -132,6 +134,7 @@ const drawViewTriangle = (gl, program) => {
   gl.enableVertexAttribArray(a_Position);
   gl.enableVertexAttribArray(a_Color);
   gl.drawArrays(gl.TRIANGLES, 0, 9);
+  window.requestAnimationFrame(() => drawViewTriangle(gl, program));
 };
 
 async function main() {
@@ -141,6 +144,14 @@ async function main() {
   const program = await initShader(gl);
   gl.useProgram(program);
   drawViewTriangle(gl, program);
+  document.onkeydown = (ev) => {
+    console.log("ev.key: ", ev.key);
+    if (ev.key === "ArrowRight") {
+      eyeX += 0.01;
+    } else if (ev.key === "ArrowLeft") {
+      eyeX -= 0.01;
+    }
+  };
 }
 
 main();
