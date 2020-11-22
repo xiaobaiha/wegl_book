@@ -116,16 +116,15 @@ const drawViewTriangle = (gl, program) => {
   gl.bufferData(gl.ARRAY_BUFFER, verteicesColors, gl.STATIC_DRAW);
   const a_Position = gl.getAttribLocation(program, "a_Position");
   const a_Color = gl.getAttribLocation(program, "a_Color");
-  const u_ModelMatrix = gl.getUniformLocation(program, "u_ModelMatrix");
-  const u_ViewMatrix = gl.getUniformLocation(program, "u_ViewMatrix");
-  const u_ProjMatrix = gl.getUniformLocation(program, "u_ProjMatrix");
-  if (!u_ViewMatrix || !u_ProjMatrix || a_Position < 0 || a_Color < 0) {
+  const u_MvpMatrix = gl.getUniformLocation(program, "u_MvpMatrix");
+  if (!u_MvpMatrix || a_Position < 0 || a_Color < 0) {
     console.log("invalid storage");
     return;
   }
   const modelMatrix = mat4.create();
   const viewMatrix = mat4.create();
   const projMatrix = mat4.create();
+  const mvpMatrix = mat4.create();
   mat4.fromTranslation(modelMatrix, vec3.fromValues(0.75, 0, 0));
   mat4.lookAt(
     viewMatrix,
@@ -134,9 +133,9 @@ const drawViewTriangle = (gl, program) => {
     vec3.fromValues(0, 1, 0)
   );
   mat4.perspective(projMatrix, 30, canvasRatio, 1, 100);
-  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix);
-  gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix);
-  gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix);
+  mat4.multiply(mvpMatrix, viewMatrix, modelMatrix);
+  mat4.multiply(mvpMatrix, projMatrix, mvpMatrix);
+  gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix);
   const F_SIZE = verteicesColors.BYTES_PER_ELEMENT;
   gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, F_SIZE * 6, 0);
   gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, F_SIZE * 6, F_SIZE * 3);
@@ -144,7 +143,9 @@ const drawViewTriangle = (gl, program) => {
   gl.enableVertexAttribArray(a_Color);
   gl.drawArrays(gl.TRIANGLES, 0, 9);
   mat4.fromTranslation(modelMatrix, vec3.fromValues(-0.75, 0, 0));
-  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix);
+  mat4.multiply(mvpMatrix, viewMatrix, modelMatrix);
+  mat4.multiply(mvpMatrix, projMatrix, mvpMatrix);
+  gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix);
   gl.drawArrays(gl.TRIANGLES, 0, 9);
   window.requestAnimationFrame(() => drawViewTriangle(gl, program));
 };
