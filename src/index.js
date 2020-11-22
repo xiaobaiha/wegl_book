@@ -52,110 +52,55 @@ let eyeX = 0,
 const drawViewTriangle = (gl, program) => {
   const verteicesColors = new Float32Array([
     // right
-    0.75,
+    0,
     1.0,
     -4.0,
     0.4,
     1.0,
     0.4, // green
-    0.25,
+    -0.5,
     -1.0,
     -4.0,
     0.4,
     1.0,
     0.4,
-    1.25,
+    0.5,
     -1.0,
     -4.0,
     1.0,
     0.4,
     0.4,
-    0.75,
+    0.0,
     1.0,
     -2.0,
     1.0,
     1.0,
     0.4, // yellow
-    0.25,
+    -0.5,
     -1.0,
     -2.0,
     1.0,
     1.0,
     0.4,
-    1.25,
+    0.5,
     -1.0,
     -2.0,
     1.0,
     0.4,
     0.4,
-    0.75,
+    0.0,
     1.0,
     0.0,
     0.4,
     0.4,
     1.0, //blue
-    0.25,
+    -0.5,
     -1.0,
     0.0,
     0.4,
     0.4,
     1.0,
-    1.25,
-    -1.0,
-    0.0,
-    1.0,
-    0.4,
-    0.4,
-    //left
-    -0.75,
-    1.0,
-    -4.0,
-    0.4,
-    1.0,
-    0.4, // green
-    -0.25,
-    -1.0,
-    -4.0,
-    0.4,
-    1.0,
-    0.4,
-    -1.25,
-    -1.0,
-    -4.0,
-    1.0,
-    0.4,
-    0.4,
-    -0.75,
-    1.0,
-    -2.0,
-    1.0,
-    1.0,
-    0.4, // yellow
-    -0.25,
-    -1.0,
-    -2.0,
-    1.0,
-    1.0,
-    0.4,
-    -1.25,
-    -1.0,
-    -2.0,
-    1.0,
-    0.4,
-    0.4,
-    -0.75,
-    1.0,
-    0.0,
-    0.4,
-    0.4,
-    1.0, //blue
-    -0.25,
-    -1.0,
-    0.0,
-    0.4,
-    0.4,
-    1.0,
-    -1.25,
+    0.5,
     -1.0,
     0.0,
     1.0,
@@ -171,14 +116,17 @@ const drawViewTriangle = (gl, program) => {
   gl.bufferData(gl.ARRAY_BUFFER, verteicesColors, gl.STATIC_DRAW);
   const a_Position = gl.getAttribLocation(program, "a_Position");
   const a_Color = gl.getAttribLocation(program, "a_Color");
+  const u_ModelMatrix = gl.getUniformLocation(program, "u_ModelMatrix");
   const u_ViewMatrix = gl.getUniformLocation(program, "u_ViewMatrix");
   const u_ProjMatrix = gl.getUniformLocation(program, "u_ProjMatrix");
   if (!u_ViewMatrix || !u_ProjMatrix || a_Position < 0 || a_Color < 0) {
     console.log("invalid storage");
     return;
   }
+  const modelMatrix = mat4.create();
   const viewMatrix = mat4.create();
   const projMatrix = mat4.create();
+  mat4.fromTranslation(modelMatrix, vec3.fromValues(0.75, 0, 0));
   mat4.lookAt(
     viewMatrix,
     vec3.fromValues(eyeX, 0, 5),
@@ -186,6 +134,7 @@ const drawViewTriangle = (gl, program) => {
     vec3.fromValues(0, 1, 0)
   );
   mat4.perspective(projMatrix, 30, canvasRatio, 1, 100);
+  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix);
   gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix);
   gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix);
   const F_SIZE = verteicesColors.BYTES_PER_ELEMENT;
@@ -193,7 +142,10 @@ const drawViewTriangle = (gl, program) => {
   gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, F_SIZE * 6, F_SIZE * 3);
   gl.enableVertexAttribArray(a_Position);
   gl.enableVertexAttribArray(a_Color);
-  gl.drawArrays(gl.TRIANGLES, 0, 18);
+  gl.drawArrays(gl.TRIANGLES, 0, 9);
+  mat4.fromTranslation(modelMatrix, vec3.fromValues(-0.75, 0, 0));
+  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix);
+  gl.drawArrays(gl.TRIANGLES, 0, 9);
   window.requestAnimationFrame(() => drawViewTriangle(gl, program));
 };
 
