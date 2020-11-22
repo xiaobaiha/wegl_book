@@ -42,7 +42,8 @@ async function initShader(gl) {
   return program;
 }
 
-let eyeX = 0.2;
+let eyeX = 0,
+  canvasRatio = 0;
 
 /**
  * @param {WebGLRenderingContext} gl
@@ -50,57 +51,112 @@ let eyeX = 0.2;
  */
 const drawViewTriangle = (gl, program) => {
   const verteicesColors = new Float32Array([
-    // vertex and color
-    0.0,
-    0.5,
-    -0.4,
+    // right
+    0.75,
+    1.0,
+    -4.0,
     0.4,
     1.0,
     0.4, // green
-    -0.5,
-    -0.5,
-    -0.4,
+    0.25,
+    -1.0,
+    -4.0,
     0.4,
     1.0,
     0.4,
-    0.5,
-    -0.5,
-    -0.4,
+    1.25,
+    -1.0,
+    -4.0,
     1.0,
     0.4,
     0.4,
-    0.5,
-    0.4,
-    -0.2,
+    0.75,
     1.0,
-    0.4,
+    -2.0,
+    1.0,
+    1.0,
     0.4, // yellow
-    -0.5,
-    0.4,
-    -0.2,
+    0.25,
+    -1.0,
+    -2.0,
     1.0,
     1.0,
     0.4,
-    0.0,
-    -0.6,
-    -0.2,
+    1.25,
+    -1.0,
+    -2.0,
     1.0,
+    0.4,
+    0.4,
+    0.75,
     1.0,
-    0.4,
-    0.0,
-    0.5,
-    0.0,
-    0.4,
-    0.4,
-    1.0, // blue
-    -0.5,
-    -0.5,
     0.0,
     0.4,
     0.4,
+    1.0, //blue
+    0.25,
+    -1.0,
+    0.0,
+    0.4,
+    0.4,
     1.0,
-    0.5,
-    -0.5,
+    1.25,
+    -1.0,
+    0.0,
+    1.0,
+    0.4,
+    0.4,
+    //left
+    -0.75,
+    1.0,
+    -4.0,
+    0.4,
+    1.0,
+    0.4, // green
+    -0.25,
+    -1.0,
+    -4.0,
+    0.4,
+    1.0,
+    0.4,
+    -1.25,
+    -1.0,
+    -4.0,
+    1.0,
+    0.4,
+    0.4,
+    -0.75,
+    1.0,
+    -2.0,
+    1.0,
+    1.0,
+    0.4, // yellow
+    -0.25,
+    -1.0,
+    -2.0,
+    1.0,
+    1.0,
+    0.4,
+    -1.25,
+    -1.0,
+    -2.0,
+    1.0,
+    0.4,
+    0.4,
+    -0.75,
+    1.0,
+    0.0,
+    0.4,
+    0.4,
+    1.0, //blue
+    -0.25,
+    -1.0,
+    0.0,
+    0.4,
+    0.4,
+    1.0,
+    -1.25,
+    -1.0,
     0.0,
     1.0,
     0.4,
@@ -125,11 +181,11 @@ const drawViewTriangle = (gl, program) => {
   const projMatrix = mat4.create();
   mat4.lookAt(
     viewMatrix,
-    vec3.fromValues(eyeX, 0.25, 0.25),
-    vec3.fromValues(0, 0, 0),
+    vec3.fromValues(eyeX, 0, 5),
+    vec3.fromValues(0, 0, -100),
     vec3.fromValues(0, 1, 0)
   );
-  mat4.ortho(projMatrix, -1.0, 1.0, -1.0, 1.0, 0.0, 2.0);
+  mat4.perspective(projMatrix, 30, canvasRatio, 1, 100);
   gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix);
   gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix);
   const F_SIZE = verteicesColors.BYTES_PER_ELEMENT;
@@ -137,13 +193,14 @@ const drawViewTriangle = (gl, program) => {
   gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, F_SIZE * 6, F_SIZE * 3);
   gl.enableVertexAttribArray(a_Position);
   gl.enableVertexAttribArray(a_Color);
-  gl.drawArrays(gl.TRIANGLES, 0, 9);
+  gl.drawArrays(gl.TRIANGLES, 0, 18);
   window.requestAnimationFrame(() => drawViewTriangle(gl, program));
 };
 
 async function main() {
   /** @type {HTMLCanvasElement} */
   const canvas = document.querySelector("#root");
+  canvasRatio = canvas.width / canvas.height;
   const gl = canvas.getContext("webgl");
   const program = await initShader(gl);
   gl.useProgram(program);
