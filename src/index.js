@@ -50,56 +50,76 @@ let eyeX = 0,
  * @param {WebGLProgram} program
  */
 const drawViewTriangle = (gl, program) => {
-  const verteicesColors = new Float32Array([
-    1.0, // 1
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    -1.0, // 2
-    1.0,
-    1.0,
-    1.0,
-    0.0,
-    1.0,
-    -1.0, // 3
-    -1.0,
-    1.0,
-    1.0,
-    0.0,
-    0.0,
-    1.0, // 4
-    -1.0,
-    1.0,
-    1.0,
-    1.0,
-    0.0,
-    1.0, // 5
-    -1.0,
-    -1.0,
-    0.0,
-    1.0,
-    0.0,
-    1.0, // 6
-    1.0,
-    -1.0,
-    0.0,
-    1.0,
-    1.0,
-    -1.0, // 7
-    1.0,
-    -1.0,
-    0.0,
-    0.0,
-    1.0,
-    -1.0, // 8
-    -1.0,
-    -1.0,
-    0.0,
-    0.0,
-    0.0,
-  ]);
+  const x0 = [1.0, 1.0, 1.0];
+  const x1 = [-1.0, 1.0, 1.0];
+  const x2 = [-1.0, -1.0, 1.0];
+  const x3 = [1.0, -1.0, 1.0];
+  const x4 = [1.0, -1.0, -1.0];
+  const x5 = [1.0, 1.0, -1.0];
+  const x6 = [-1.0, 1.0, -1.0];
+  const x7 = [-1.0, -1.0, -1.0];
+  const verteices = new Float32Array(
+    [
+      x0,
+      x1,
+      x2,
+      x3,
+      x0,
+      x3,
+      x4,
+      x5,
+      x0,
+      x5,
+      x6,
+      x1,
+      x1,
+      x6,
+      x7,
+      x2,
+      x7,
+      x4,
+      x3,
+      x2,
+      x4,
+      x7,
+      x6,
+      x5,
+    ].flat()
+  );
+  const c0 = [0.4, 0.4, 1.0];
+  const c1 = [0.4, 1.0, 0.4];
+  const c3 = [0.4, 1.0, 1.0];
+  const c2 = [1.0, 0.4, 0.4];
+  const c4 = [1.0, 0.4, 1.0];
+  const c5 = [1.0, 1.0, -1.0];
+  const colors = new Float32Array(
+    [
+      c0,
+      c0,
+      c0,
+      c0,
+      c1,
+      c1,
+      c1,
+      c1,
+      c2,
+      c2,
+      c2,
+      c2,
+      c3,
+      c3,
+      c3,
+      c3,
+      c4,
+      c4,
+      c4,
+      c4,
+      c5,
+      c5,
+      c5,
+      c5,
+    ].flat()
+  );
   const indices = new Uint8Array([
     0, // 1
     1,
@@ -107,47 +127,46 @@ const drawViewTriangle = (gl, program) => {
     0,
     2,
     3,
-    0, // 2
-    3,
-    4,
-    0,
-    4,
-    5,
-    0, // 3
+    4, // 2
     5,
     6,
-    0,
-    6,
-    1,
-    1, // 4
-    6,
-    7,
-    1,
-    7,
-    2,
-    7, // 5
-    4,
-    3,
-    7,
-    3,
-    2,
-    4, // 6
-    7,
-    6,
     4,
     6,
-    5,
+    7,
+    8, // 3
+    9,
+    10,
+    8,
+    10,
+    11,
+    12, // 4
+    13,
+    14,
+    12,
+    14,
+    15,
+    16, // 5
+    17,
+    18,
+    16,
+    18,
+    19,
+    20, // 6
+    21,
+    22,
+    20,
+    22,
+    23,
   ]);
-  const vertexColorBuffer = gl.createBuffer();
+  const vertexBuffer = gl.createBuffer();
+  const colorBuffer = gl.createBuffer();
   const indexBuffer = gl.createBuffer();
-  if (!vertexColorBuffer || !indexBuffer) {
+  if (!vertexBuffer || !colorBuffer || !indexBuffer) {
     console.log("Failed to create buffer");
     return -1;
   }
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, verteicesColors, gl.STATIC_DRAW);
-  gl.enable(gl.DEPTH_TEST);
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, verteices, gl.STATIC_DRAW);
   const a_Position = gl.getAttribLocation(program, "a_Position");
   const a_Color = gl.getAttribLocation(program, "a_Color");
   const u_MvpMatrix = gl.getUniformLocation(program, "u_MvpMatrix");
@@ -155,11 +174,14 @@ const drawViewTriangle = (gl, program) => {
     console.log("invalid storage");
     return;
   }
-  const F_SIZE = verteicesColors.BYTES_PER_ELEMENT;
-  gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, F_SIZE * 6, 0);
-  gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, F_SIZE * 6, F_SIZE * 3);
+  gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(a_Position);
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+  gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(a_Color);
+  gl.enable(gl.DEPTH_TEST);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
   const viewMatrix = mat4.create();
   const projMatrix = mat4.create();
   const mvpMatrix = mat4.create();
