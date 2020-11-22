@@ -114,7 +114,7 @@ const drawViewTriangle = (gl, program) => {
   const a_Position = gl.getAttribLocation(program, "a_Position");
   const a_Color = gl.getAttribLocation(program, "a_Color");
   const u_ViewMatrix = gl.getUniformLocation(program, "u_ViewMatrix");
-  if (!u_ViewMatrix) {
+  if (!u_ViewMatrix || a_Position < 0 || a_Color < 0) {
     console.log("invalid storage");
     return;
   }
@@ -126,17 +126,12 @@ const drawViewTriangle = (gl, program) => {
     vec3.fromValues(0, 1, 0)
   );
   gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix);
-  if (a_Position < 0 || a_Color < 0) {
-    console.log("invalid storage");
-    return;
-  }
   const F_SIZE = verteicesColors.BYTES_PER_ELEMENT;
   gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, F_SIZE * 6, 0);
   gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, F_SIZE * 6, F_SIZE * 3);
   gl.enableVertexAttribArray(a_Position);
   gl.enableVertexAttribArray(a_Color);
   gl.drawArrays(gl.TRIANGLES, 0, 9);
-  // window.requestAnimationFrame(() => drawTriangle(gl, program));
 };
 
 async function main() {
