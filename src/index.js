@@ -42,7 +42,8 @@ async function initShader(gl) {
   return program;
 }
 
-let eyeX = 0.2;
+let near = 0.0,
+  far = 0.5;
 
 /**
  * @param {WebGLRenderingContext} gl
@@ -115,19 +116,14 @@ const drawViewTriangle = (gl, program) => {
   gl.bufferData(gl.ARRAY_BUFFER, verteicesColors, gl.STATIC_DRAW);
   const a_Position = gl.getAttribLocation(program, "a_Position");
   const a_Color = gl.getAttribLocation(program, "a_Color");
-  const u_ViewMatrix = gl.getUniformLocation(program, "u_ViewMatrix");
-  if (!u_ViewMatrix || a_Position < 0 || a_Color < 0) {
+  const u_ProjMatrix = gl.getUniformLocation(program, "u_ProjMatrix");
+  if (!u_ProjMatrix || a_Position < 0 || a_Color < 0) {
     console.log("invalid storage");
     return;
   }
   const viewMatrix = mat4.create();
-  mat4.lookAt(
-    viewMatrix,
-    vec3.fromValues(eyeX, 0.25, 0.25),
-    vec3.fromValues(0, 0, 0),
-    vec3.fromValues(0, 1, 0)
-  );
-  gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix);
+  mat4.ortho(viewMatrix, -1, 1, -1, 1, near, far);
+  gl.uniformMatrix4fv(u_ProjMatrix, false, viewMatrix);
   const F_SIZE = verteicesColors.BYTES_PER_ELEMENT;
   gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, F_SIZE * 6, 0);
   gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, F_SIZE * 6, F_SIZE * 3);
@@ -146,11 +142,25 @@ async function main() {
   drawViewTriangle(gl, program);
   document.onkeydown = (ev) => {
     console.log("ev.key: ", ev.key);
-    if (ev.key === "ArrowRight") {
-      eyeX += 0.01;
-    } else if (ev.key === "ArrowLeft") {
-      eyeX -= 0.01;
+    switch (ev.key) {
+      case "ArrowRight":
+        near += 0.01;
+        break;
+      case "ArrowLeft":
+        near -= 0.01;
+        break;
+      case "ArrowUp":
+        far += 0.01;
+        break;
+      case "ArrowDown":
+        far -= 0.01;
+        break;
+      default:
+        break;
     }
+    document.querySelector("#nearFar").innerHTML = `near: ${near.toFixed(
+      2
+    )}, far: ${far.toFixed(2)}`;
   };
 }
 
