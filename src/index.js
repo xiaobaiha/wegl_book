@@ -48,6 +48,32 @@ let eyeX = 0,
 /**
  * @param {WebGLRenderingContext} gl
  * @param {WebGLProgram} program
+ * @param {*} data
+ * @param {number} num
+ * @param {number} type
+ * @param {string} attribute
+ */
+const initArrayBuffer = (gl, program, data, num, type, attribute) => {
+  const buffer = gl.createBuffer();
+  if (!buffer) {
+    console.log("Failed to create the buffer object");
+    return false;
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  const a_Attribute = gl.getAttribLocation(program, attribute);
+  if (a_Attribute < 0) {
+    console.log("Failed to get the storage location of " + attribute);
+    return false;
+  }
+  gl.vertexAttribPointer(a_Attribute, num, type, false, 0, 0);
+  gl.enableVertexAttribArray(a_Attribute);
+  return true;
+};
+
+/**
+ * @param {WebGLRenderingContext} gl
+ * @param {WebGLProgram} program
  */
 const drawViewTriangle = (gl, program) => {
   const x0 = [1.0, 1.0, 1.0];
@@ -86,12 +112,12 @@ const drawViewTriangle = (gl, program) => {
       x5,
     ].flat()
   );
-  const c0 = [0.4, 0.4, 1.0];
-  const c1 = [0.4, 1.0, 0.4];
-  const c3 = [0.4, 1.0, 1.0];
-  const c2 = [1.0, 0.4, 0.4];
-  const c4 = [1.0, 0.4, 1.0];
-  const c5 = [1.0, 1.0, -1.0];
+  const c0 = [1.0, 1.0, 1.0];
+  const c1 = [1.0, 1.0, 1.0];
+  const c3 = [1.0, 1.0, 1.0];
+  const c2 = [1.0, 1.0, 1.0];
+  const c4 = [1.0, 1.0, 1.0];
+  const c5 = [1.0, 1.0, 1.0];
   const colors = new Float32Array(
     [
       c0,
@@ -158,30 +184,63 @@ const drawViewTriangle = (gl, program) => {
     22,
     23,
   ]);
-  const vertexBuffer = gl.createBuffer();
-  const colorBuffer = gl.createBuffer();
+  const n1 = [0.0, 0.0, 1.0];
+  const n2 = [1.0, 0.0, 0.0];
+  const n3 = [0.0, 1.0, 0.0];
+  const n4 = [-1.0, 0.0, 0.0];
+  const n5 = [0.0, -1.0, 0.0];
+  const n6 = [0.0, 0.0, -1.0];
+  const normals = new Float32Array(
+    [
+      n1,
+      n1,
+      n1,
+      n1,
+      n2,
+      n2,
+      n2,
+      n2,
+      n3,
+      n3,
+      n3,
+      n3,
+      n4,
+      n4,
+      n4,
+      n4,
+      n5,
+      n5,
+      n5,
+      n5,
+      n6,
+      n6,
+      n6,
+      n6,
+    ].flat()
+  );
   const indexBuffer = gl.createBuffer();
-  if (!vertexBuffer || !colorBuffer || !indexBuffer) {
+  if (
+    !initArrayBuffer(gl, program, verteices, 3, gl.FLOAT, "a_Position") ||
+    !initArrayBuffer(gl, program, colors, 3, gl.FLOAT, "a_Color") ||
+    !initArrayBuffer(gl, program, normals, 3, gl.FLOAT, "a_Normal") ||
+    !indexBuffer
+  ) {
     console.log("Failed to create buffer");
     return -1;
   }
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, verteices, gl.STATIC_DRAW);
-  const a_Position = gl.getAttribLocation(program, "a_Position");
-  const a_Color = gl.getAttribLocation(program, "a_Color");
   const u_MvpMatrix = gl.getUniformLocation(program, "u_MvpMatrix");
-  if (!u_MvpMatrix || a_Position < 0 || a_Color < 0) {
+  const u_LightColor = gl.getUniformLocation(program, "u_LightColor");
+  const u_LightDirection = gl.getUniformLocation(program, "u_LightDirection");
+  if (!u_MvpMatrix || !u_LightColor || !u_LightDirection) {
     console.log("invalid storage");
     return;
   }
-  gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(a_Position);
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-  gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(a_Color);
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.uniform3f(u_LightColor, 1.0, 1.0, 1.0);
+  const lightDirection = vec3.fromValues(0.5, 3.0, 4.0);
+  vec3.normalize(lightDirection, lightDirection);
+  gl.uniform3fv(u_LightDirection, lightDirection);
   const viewMatrix = mat4.create();
   const projMatrix = mat4.create();
   const mvpMatrix = mat4.create();
@@ -189,9 +248,9 @@ const drawViewTriangle = (gl, program) => {
     viewMatrix,
     vec3.fromValues(3, 3, 7),
     vec3.fromValues(0, 0, 0),
-    vec3.fromValues(0, -1, 0)
+    vec3.fromValues(0, 1, 0)
   );
-  mat4.perspective(projMatrix, 30, 1, 1, 100);
+  mat4.perspective(projMatrix, (30 * Math.PI) / 180, canvasRatio, 1, 100);
   mat4.multiply(mvpMatrix, projMatrix, viewMatrix);
   gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
